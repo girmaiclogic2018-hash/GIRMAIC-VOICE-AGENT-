@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Send, CheckCircle2, Download, Briefcase, PhoneCall, Building2 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { CustomerInquiry, Language } from '@/lib/types';
 
 interface InquiryModalProps {
@@ -52,15 +51,14 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({
     onAddInquiry(newInquiry);
     setSubmitted(true);
 
-    try {
+    import('canvas-confetti').then((confettiModule) => {
+      const confetti = confettiModule.default || confettiModule;
       confetti({
         particleCount: 60,
         spread: 70,
         origin: { y: 0.6 },
       });
-    } catch (e) {
-      // ignore
-    }
+    }).catch(() => {});
 
     setTimeout(() => {
       setSubmitted(false);

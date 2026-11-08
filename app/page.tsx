@@ -22,15 +22,30 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
+import dynamic from 'next/dynamic';
 import { RobotState, Language, ChatMessage, CustomerInquiry, AgentSettings, CompanyKnowledgeItem } from '@/lib/types';
 import { INITIAL_KNOWLEDGE, INITIAL_TEST_INQUIRIES } from '@/lib/companyKnowledge';
-import { Robot3DCanvas } from '@/components/Robot3DCanvas';
+
 import { MicrophoneControls } from '@/components/MicrophoneControls';
 import { ChatTranscript } from '@/components/ChatTranscript';
 import { InquiryModal } from '@/components/InquiryModal';
 import { AdminDrawer } from '@/components/AdminDrawer';
 import { PrivacyModal } from '@/components/PrivacyModal';
 import { HelpModal } from '@/components/HelpModal';
+
+// Dynamically load WebGL 3D Canvas strictly on client side (disable SSR for WebGL/Three.js)
+const Robot3DCanvas = dynamic(
+  () => import('@/components/Robot3DCanvas').then((mod) => mod.Robot3DCanvas),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="relative w-full h-[360px] sm:h-[420px] rounded-2xl glass-panel flex flex-col items-center justify-center p-6 border border-slate-800">
+        <div className="w-12 h-12 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin mb-3" />
+        <span className="text-xs font-mono text-cyan-300">Initializing GIRMAIC 3D Engine...</span>
+      </div>
+    ),
+  }
+);
 
 export default function Home() {
   // Default settings
