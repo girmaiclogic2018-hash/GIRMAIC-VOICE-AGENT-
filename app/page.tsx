@@ -25,8 +25,9 @@ import {
 } from 'lucide-react';
 
 import dynamic from 'next/dynamic';
-import { RobotState, Language, ChatMessage, CustomerInquiry, AgentSettings, CompanyKnowledgeItem } from '@/lib/types';
+import { RobotState, Language, ChatMessage, CustomerInquiry, AgentSettings, CompanyKnowledgeItem, AppointmentRecord } from '@/lib/types';
 import { INITIAL_KNOWLEDGE, INITIAL_TEST_INQUIRIES } from '@/lib/companyKnowledge';
+import { INITIAL_TEST_APPOINTMENTS } from '@/lib/appointments';
 
 import { MicrophoneControls } from '@/components/MicrophoneControls';
 import { ChatTranscript } from '@/components/ChatTranscript';
@@ -35,6 +36,7 @@ import { AdminDrawer } from '@/components/AdminDrawer';
 import { PrivacyModal } from '@/components/PrivacyModal';
 import { HelpModal } from '@/components/HelpModal';
 import { TelephonyModal } from '@/components/TelephonyModal';
+import { AppointmentModal } from '@/components/AppointmentModal';
 
 // Dynamically load WebGL 3D Canvas strictly on client side (disable SSR for WebGL/Three.js)
 const Robot3DCanvas = dynamic(
@@ -67,6 +69,7 @@ export default function Home() {
   // Data State
   const [inquiries, setInquiries] = useState<CustomerInquiry[]>(INITIAL_TEST_INQUIRIES);
   const [knowledgeBase, setKnowledgeBase] = useState<CompanyKnowledgeItem[]>(INITIAL_KNOWLEDGE);
+  const [appointments, setAppointments] = useState<AppointmentRecord[]>(INITIAL_TEST_APPOINTMENTS);
 
   // Application State
   const [robotState, setRobotState] = useState<RobotState>('idle');
@@ -92,6 +95,17 @@ export default function Home() {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isTelephonyOpen, setIsTelephonyOpen] = useState(false);
+  const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
+
+  const handleAddAppointment = useCallback((apt: AppointmentRecord) => {
+    setAppointments((prev) => {
+      const updated = [apt, ...prev];
+      try {
+        localStorage.setItem('girmaic_appointments', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  }, []);
 
   const handleClearSession = () => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -124,6 +138,9 @@ export default function Home() {
 
         const storedSettings = localStorage.getItem('girmaic_settings');
         if (storedSettings) setSettings(JSON.parse(storedSettings));
+
+        const storedApts = localStorage.getItem('girmaic_appointments');
+        if (storedApts) setAppointments(JSON.parse(storedApts));
       } catch (e) {
         console.warn('LocalStorage error:', e);
       }
@@ -154,16 +171,61 @@ export default function Home() {
     } catch (e) {}
   };
 
-  // Speech Synthesis Engine
+  // Speech Synthesis Engine with Server Audio Fallback
   const speakResponse = useCallback(
     (text: string, lang: Language) => {
-      if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      if (!text) {
         setRobotState('idle');
         return;
       }
 
-      window.speechSynthesis.cancel();
       setRobotState('speaking');
+
+      // Helper for Server Audio Fallback
+      const playServerTTS = async () => {
+        try {
+          const res = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, language: lang }),
+          });
+          const data = await res.json();
+          if (data.audioUrl) {
+            const audio = new Audio(data.audioUrl);
+            let step = 0;
+            const interval = setInterval(() => {
+              if (!audio.paused && !audio.ended) {
+                step++;
+                setAudioLevel(0.3 + Math.abs(Math.sin(step * 0.4)) * 0.7);
+              } else {
+                clearInterval(interval);
+                setAudioLevel(0);
+                setRobotState('idle');
+              }
+            }, 100);
+
+            audio.onended = () => {
+              clearInterval(interval);
+              setAudioLevel(0);
+              setRobotState('idle');
+            };
+
+            await audio.play();
+            return;
+          }
+        } catch (e) {
+          console.warn('Server TTS playback fallback ended:', e);
+        }
+        setRobotState('idle');
+        setAudioLevel(0);
+      };
+
+      if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+        playServerTTS();
+        return;
+      }
+
+      window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = lang === 'am' ? 'am-ET' : 'en-US';
@@ -196,8 +258,7 @@ export default function Home() {
       };
 
       utterance.onerror = () => {
-        setRobotState('idle');
-        setAudioLevel(0);
+        playServerTTS();
       };
 
       window.speechSynthesis.speak(utterance);
@@ -236,6 +297,23 @@ export default function Home() {
         const data = await res.json();
         const replyText = data.text || data.fallbackText || 'I am ready to assist you.';
 
+        // Automatic appointment detection & autonomous booking without human intervention
+        if (/appointment|schedule|book|meet|ቀጠሮ|ሰዓት|ቀን/i.test(userText)) {
+          const autoApt: AppointmentRecord = {
+            id: `apt-auto-${Date.now()}`,
+            callerName: 'Voice Assistant User',
+            callerPhone: '+251982422266',
+            appointmentDate: new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10),
+            appointmentTime: '10:00 AM',
+            serviceCategory: 'AI Technology Consultation',
+            notes: `Auto-Booked from voice session: "${userText}"`,
+            timestamp: new Date().toISOString(),
+            status: 'Confirmed',
+            autoBooked: true,
+          };
+          handleAddAppointment(autoApt);
+        }
+
         const botMsg: ChatMessage = {
           id: `msg-${Date.now() + 1}`,
           sender: 'robot',
@@ -262,7 +340,7 @@ export default function Home() {
         setMessages((prev) => [...prev, errorMsg]);
       }
     },
-    [language, messages, knowledgeBase, speakResponse]
+    [language, messages, knowledgeBase, speakResponse, handleAddAppointment]
   );
 
   // Speech Recognition Setup (Browser STT)
@@ -383,6 +461,13 @@ export default function Home() {
 
           {/* Zone 2: Navigation Links (single line, clean text) */}
           <nav className="hidden lg:flex items-center gap-6 text-xs font-semibold text-slate-300">
+            <button
+              onClick={() => setIsAppointmentOpen(true)}
+              className="hover:text-amber-300 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5"
+            >
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>Appointments ({appointments.length})</span>
+            </button>
             <button
               onClick={() => setIsInquiryOpen(true)}
               className="hover:text-amber-300 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5"
@@ -621,6 +706,14 @@ export default function Home() {
         language={language}
         onClose={() => setIsTelephonyOpen(false)}
         onSimulatePhoneQuery={handleSendMessage}
+      />
+
+      <AppointmentModal
+        isOpen={isAppointmentOpen}
+        language={language}
+        onClose={() => setIsAppointmentOpen(false)}
+        appointments={appointments}
+        onAddAppointment={handleAddAppointment}
       />
     </div>
   );

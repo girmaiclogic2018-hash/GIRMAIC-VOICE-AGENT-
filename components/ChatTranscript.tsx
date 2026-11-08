@@ -21,16 +21,31 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsMounted(true), 0);
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    } else if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
     }
+  };
+
+  useEffect(() => {
+    // Scroll immediately and after layout rendering
+    scrollToBottom();
+    const frame = requestAnimationFrame(() => {
+      scrollToBottom();
+    });
+    return () => cancelAnimationFrame(frame);
   }, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -165,6 +180,8 @@ export const ChatTranscript: React.FC<ChatTranscriptProps> = ({
             </div>
           ))
         )}
+        {/* Invisible anchor element for auto-scrolling */}
+        <div ref={messagesEndRef} className="h-px w-full" />
       </div>
 
       {/* Input Form */}

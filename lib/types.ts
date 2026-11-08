@@ -39,3 +39,16 @@ export interface AgentSettings {
   lowPowerMode: boolean;
   reducedMotion: boolean;
 }
+
+export interface AppointmentRecord {
+  id: string;
+  callerName: string;
+  callerPhone: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  serviceCategory: string;
+  notes: string;
+  timestamp: string;
+  status: 'Confirmed' | 'Pending' | 'Completed' | 'Cancelled';
+  autoBooked: boolean;
+}

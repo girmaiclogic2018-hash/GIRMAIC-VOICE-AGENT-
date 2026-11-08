@@ -184,35 +184,83 @@ export const AdminDrawer: React.FC<AdminDrawerProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Speech Rate: {voiceRate}x
+              {/* Humanoid Speech Rate & Pitch Fine-Tuning Section */}
+              <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                    <Sliders className="w-3.5 h-3.5" />
+                    <span>Humanoid Speech Rate (Fine-Tune)</span>
                   </label>
-                  <input
-                    type="range"
-                    min="0.7"
-                    max="1.4"
-                    step="0.05"
-                    value={voiceRate}
-                    onChange={(e) => setVoiceRate(parseFloat(e.target.value))}
-                    className="w-full accent-amber-500"
-                  />
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    {voiceRate.toFixed(2)}x
+                  </span>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Voice Pitch: {voicePitch}x
+                <input
+                  type="range"
+                  min="0.5"
+                  max="1.5"
+                  step="0.05"
+                  value={voiceRate}
+                  onChange={(e) => setVoiceRate(parseFloat(e.target.value))}
+                  className="w-full accent-amber-500 cursor-pointer h-2 bg-slate-950 rounded-lg"
+                />
+
+                {/* Quick Presets for Humanoid Persona */}
+                <div className="flex items-center justify-between gap-2 pt-1 text-[10px]">
+                  <button
+                    type="button"
+                    onClick={() => setVoiceRate(0.85)}
+                    className={`px-2 py-1 rounded-md border transition-all ${
+                      voiceRate === 0.85
+                        ? 'bg-amber-500/30 border-amber-500 text-amber-300 font-bold'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Deliberate (0.85x)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVoiceRate(1.0)}
+                    className={`px-2 py-1 rounded-md border transition-all ${
+                      voiceRate === 1.0
+                        ? 'bg-amber-500/30 border-amber-500 text-amber-300 font-bold'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Natural Persona (1.0x)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVoiceRate(1.2)}
+                    className={`px-2 py-1 rounded-md border transition-all ${
+                      voiceRate === 1.2
+                        ? 'bg-amber-500/30 border-amber-500 text-amber-300 font-bold'
+                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    High-Tech Brief (1.2x)
+                  </button>
+                </div>
+
+                <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-300">
+                    Voice Pitch Modulation
                   </label>
-                  <input
-                    type="range"
-                    min="0.8"
-                    max="1.3"
-                    step="0.05"
-                    value={voicePitch}
-                    onChange={(e) => setVoicePitch(parseFloat(e.target.value))}
-                    className="w-full accent-amber-500"
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      min="0.8"
+                      max="1.3"
+                      step="0.05"
+                      value={voicePitch}
+                      onChange={(e) => setVoicePitch(parseFloat(e.target.value))}
+                      className="w-28 accent-amber-500 cursor-pointer h-1.5 bg-slate-950 rounded-lg"
+                    />
+                    <span className="text-[10px] font-mono text-slate-400 w-8 text-right">
+                      {voicePitch.toFixed(2)}x
+                    </span>
+                  </div>
                 </div>
               </div>
 
