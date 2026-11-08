@@ -20,6 +20,8 @@ import {
   FileText,
   UserCheck,
   ArrowRight,
+  PhoneCall,
+  RotateCcw,
 } from 'lucide-react';
 
 import dynamic from 'next/dynamic';
@@ -32,6 +34,7 @@ import { InquiryModal } from '@/components/InquiryModal';
 import { AdminDrawer } from '@/components/AdminDrawer';
 import { PrivacyModal } from '@/components/PrivacyModal';
 import { HelpModal } from '@/components/HelpModal';
+import { TelephonyModal } from '@/components/TelephonyModal';
 
 // Dynamically load WebGL 3D Canvas strictly on client side (disable SSR for WebGL/Three.js)
 const Robot3DCanvas = dynamic(
@@ -88,6 +91,23 @@ export default function Home() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isTelephonyOpen, setIsTelephonyOpen] = useState(false);
+
+  const handleClearSession = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setRobotState('idle');
+    setMessages([
+      {
+        id: `msg-welcome-${Date.now()}`,
+        sender: 'robot',
+        text: language === 'am' ? settings.greetingAM : settings.greetingEN,
+        language,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+  };
 
   // Web Speech References
   const recognitionRef = useRef<any>(null);
@@ -371,6 +391,13 @@ export default function Home() {
               <span>Inquiries & Leads</span>
             </button>
             <button
+              onClick={() => setIsTelephonyOpen(true)}
+              className="hover:text-cyan-300 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5"
+            >
+              <PhoneCall className="w-4 h-4 text-cyan-400" />
+              <span>Phone Integration</span>
+            </button>
+            <button
               onClick={() => setIsHelpOpen(true)}
               className="hover:text-cyan-300 transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5"
             >
@@ -587,6 +614,13 @@ export default function Home() {
         isOpen={isHelpOpen}
         language={language}
         onClose={() => setIsHelpOpen(false)}
+      />
+
+      <TelephonyModal
+        isOpen={isTelephonyOpen}
+        language={language}
+        onClose={() => setIsTelephonyOpen(false)}
+        onSimulatePhoneQuery={handleSendMessage}
       />
     </div>
   );

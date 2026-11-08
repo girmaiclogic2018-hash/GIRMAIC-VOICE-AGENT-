@@ -1,10 +1,9 @@
 import { GoogleGenAI } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
 
-const apiKey = process.env.GEMINI_API_KEY;
-
 export async function POST(req: NextRequest) {
   try {
+    const apiKey = process.env.GEMINI_API_KEY;
     const { prompt, language = 'en', history = [], knowledgeBase = [] } = await req.json();
 
     if (!prompt || typeof prompt !== 'string') {

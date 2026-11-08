@@ -138,10 +138,24 @@ export const MicrophoneControls: React.FC<MicrophoneControlsProps> = ({
         )}
       </div>
 
-      {/* Mic Permission Warning Notice */}
+      {/* Mic Permission Warning & Step-by-Step Chrome/Android Guidance */}
       {micPermission === 'denied' && (
-        <div className="text-xs text-amber-400 bg-amber-950/50 border border-amber-500/30 rounded-lg px-3 py-1.5 text-center max-w-md">
-          Microphone access is blocked in your browser settings. You can still type questions below!
+        <div className="text-xs text-amber-300 bg-slate-900/90 border border-amber-500/40 rounded-xl p-3 text-left max-w-md space-y-1.5 shadow-lg">
+          <div className="font-bold text-amber-400 flex items-center gap-1.5">
+            <MicOff className="w-4 h-4 text-amber-400" />
+            <span>Microphone Access Blocked in Browser</span>
+          </div>
+          <p className="text-[11px] text-slate-300">
+            To enable voice conversation on Android or Chrome:
+          </p>
+          <ol className="list-decimal list-inside text-[11px] text-slate-400 space-y-0.5">
+            <li>Tap the <strong>Lock / Tune icon</strong> next to the web URL bar.</li>
+            <li>Select <strong>Permissions &gt; Microphone</strong> and tap <strong>Allow</strong>.</li>
+            <li>Refresh the page and tap <strong>Start Voice</strong> again.</li>
+          </ol>
+          <p className="text-[10px] text-cyan-400 italic pt-1">
+            Note: You can always type questions in the conversation box below without microphone access!
+          </p>
         </div>
       )}
     </div>
