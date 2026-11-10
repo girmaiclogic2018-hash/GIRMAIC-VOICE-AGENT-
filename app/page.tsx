@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Mic,
   Volume2,
@@ -22,6 +23,8 @@ import {
   ArrowRight,
   PhoneCall,
   RotateCcw,
+  Clock,
+  History,
 } from 'lucide-react';
 
 import dynamic from 'next/dynamic';
@@ -37,6 +40,7 @@ import { PrivacyModal } from '@/components/PrivacyModal';
 import { HelpModal } from '@/components/HelpModal';
 import { TelephonyModal } from '@/components/TelephonyModal';
 import { AppointmentModal } from '@/components/AppointmentModal';
+import { TranscriptHistoryModal } from '@/components/TranscriptHistoryModal';
 
 // Dynamically load WebGL 3D Canvas strictly on client side (disable SSR for WebGL/Three.js)
 const Robot3DCanvas = dynamic(
@@ -56,8 +60,8 @@ export default function Home() {
   // Default settings
   const [settings, setSettings] = useState<AgentSettings>({
     robotName: 'GIRMAIC AI Voice Agent',
-    greetingEN: 'Hello! Welcome to GIRMAIC AI Technology and Trading. I am your GIRMAIC AI Voice Assistant. How may I assist you today?',
-    greetingAM: 'ሰላም! ወደ GIRMAIC AI Technology and Trading እንኳን በደህና መጡ። እኔ የGIRMAIC ሰው ሰራሽ አስተውሎት የድምፅ ረዳትዎ ነኝ። እንዴት ልርዳዎት?',
+    greetingEN: 'Hello! Welcome to GIRMAIC AI Technology and Innovation Center. I am your GIRMAIC AI Voice Assistant. How may I assist you today?',
+    greetingAM: 'ሰላም! ወደ GIRMAIC AI Technology and Innovation Center እንኳን በደህና መጡ። እኔ የGIRMAIC ሰው ሰራሽ አስተውሎት የድምፅ ረዳትዎ ነኝ። እንዴት ልርዳዎት?',
     voicePitch: 1.0,
     voiceRate: 1.0,
     voiceGender: 'neutral',
@@ -77,13 +81,28 @@ export default function Home() {
   const [isListening, setIsListening] = useState<boolean>(false);
   const [audioLevel, setAudioLevel] = useState<number>(0);
   const [micPermission, setMicPermission] = useState<'prompt' | 'granted' | 'denied'>('prompt');
+  const [sessionDuration, setSessionDuration] = useState<number>(0);
+
+  // Active Session Elapsed Time Counter
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSessionDuration((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Messages State
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'msg-welcome',
       sender: 'robot',
-      text: 'Hello! Welcome to GIRMAIC AI Technology and Trading. I am your GIRMAIC AI Voice Assistant. How may I assist you today?',
+      text: 'Hello! Welcome to GIRMAIC AI Technology and Innovation Center. I am your GIRMAIC AI Voice Assistant. How may I assist you today?',
       language: 'en',
       timestamp: '2026-11-08T10:00:00.000Z',
     },
@@ -96,6 +115,7 @@ export default function Home() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isTelephonyOpen, setIsTelephonyOpen] = useState(false);
   const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const handleAddAppointment = useCallback((apt: AppointmentRecord) => {
     setAppointments((prev) => {
@@ -111,6 +131,7 @@ export default function Home() {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
+    setSessionDuration(0);
     setRobotState('idle');
     setMessages([
       {
@@ -448,8 +469,15 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-8">
           {/* Zone 1: Brand Wordmark */}
           <div className="flex items-center gap-3 whitespace-nowrap shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 via-cyan-500 to-blue-600 flex items-center justify-center p-0.5 shadow-lg">
-              <Bot className="w-5 h-5 text-slate-950" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden border border-amber-500/50 shadow-lg shrink-0">
+              <Image
+                src="/assets/aistudio/IMG_20261110_020235_716_a7b35e2f.jpg"
+                alt="GIRMAIC AI Avatar"
+                width={36}
+                height={36}
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+              />
             </div>
             <Link href="/" className="text-base font-extrabold tracking-tight text-white flex items-center gap-2">
               <span>GIRMAIC AI VOICE AGENT</span>
@@ -457,6 +485,15 @@ export default function Home() {
                 PROTOTYPE
               </span>
             </Link>
+
+            {/* Session Duration Discreet Badge */}
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-cyan-500/30 text-[11px] font-mono text-cyan-300 shadow-sm"
+              title="Active Conversation Elapsed Time"
+            >
+              <Clock className="w-3 h-3 text-cyan-400 animate-pulse" />
+              <span>{formatDuration(sessionDuration)}</span>
+            </div>
           </div>
 
           {/* Zone 2: Navigation Links (single line, clean text) */}
@@ -576,6 +613,7 @@ export default function Home() {
               language={language}
               onSendMessage={handleSendMessage}
               onReplayAudio={(msg) => speakResponse(msg.text, msg.language)}
+              onOpenHistory={() => setIsHistoryOpen(true)}
             />
           </div>
         </div>
@@ -714,6 +752,16 @@ export default function Home() {
         onClose={() => setIsAppointmentOpen(false)}
         appointments={appointments}
         onAddAppointment={handleAddAppointment}
+      />
+
+      <TranscriptHistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        messages={messages}
+        language={language}
+        sessionDuration={sessionDuration}
+        onReplayAudio={(msg) => speakResponse(msg.text, msg.language)}
+        onClearSession={handleClearSession}
       />
     </div>
   );

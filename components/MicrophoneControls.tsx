@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Mic, MicOff, Square, Globe, Volume2, Sparkles, RefreshCw } from 'lucide-react';
-import { RobotState, Language } from '@/lib/types';
+import { RobotState, Language, SUPPORTED_LANGUAGES } from '@/lib/types';
 
 interface MicrophoneControlsProps {
   state: RobotState;
@@ -47,15 +47,22 @@ export const MicrophoneControls: React.FC<MicrophoneControlsProps> = ({
 
       {/* Main Microphone Button & Action Controls */}
       <div className="relative flex items-center justify-center gap-6">
-        {/* Language Switch Button */}
-        <button
-          onClick={() => onLanguageChange(language === 'en' ? 'am' : 'en')}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800/90 border border-slate-700 text-slate-200 hover:border-amber-500/50 hover:text-amber-300 transition-all text-xs font-semibold shadow-lg"
-          title="Switch Language"
-        >
-          <Globe className="w-4 h-4 text-amber-400" />
-          <span>{language === 'en' ? 'English' : 'አማርኛ (Amharic)'}</span>
-        </button>
+        {/* Multilingual Language Switcher */}
+        <div className="relative flex items-center">
+          <Globe className="w-4 h-4 text-amber-400 absolute left-3 pointer-events-none z-10" />
+          <select
+            value={language}
+            onChange={(e) => onLanguageChange(e.target.value as Language)}
+            className="pl-8 pr-4 py-2 rounded-xl bg-slate-800/90 border border-slate-700 text-slate-200 hover:border-amber-500/50 hover:text-amber-300 transition-all text-xs font-semibold shadow-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+            title="Select Spoken Language"
+          >
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <option key={lang.code} value={lang.code} className="bg-slate-900 text-slate-200">
+                {lang.nativeName} ({lang.name})
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Central Glowing Mic Button */}
         <div className="relative">

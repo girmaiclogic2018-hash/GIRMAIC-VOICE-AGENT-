@@ -28,7 +28,7 @@ const serverAppointmentsStore: AppointmentRecord[] = [
 export async function GET(req: NextRequest) {
   return NextResponse.json({
     status: 'AUTONOMOUS_OPERATOR_ONLINE',
-    organization: 'GIRMAIC AI TECHNOLOGY AND TRADING ONE PLC MEMBER',
+    organization: 'GIRMAIC AI TECHNOLOGY AND INNOVATION CENTER',
     founder: 'Girma Haile Bunaro',
     headquarters: 'Dire Dawa, Ethiopia',
     telephonyCapability: 'Fully Autonomous Incoming Call Answering & Voice Appointment Booking',
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Say voice="Polly.Joanna">
-    Hello! You have reached GIRMAIC AI Technology and Trading in Dire Dawa, Ethiopia. I am your autonomous GIRMAIC AI Phone Assistant. I can answer your questions, explain our AI and technology services, or book an appointment for you automatically without human intervention. How may I assist you today?
+    Hello! You have reached GIRMAIC AI Technology and Innovation Center in Dire Dawa, Ethiopia. I am your autonomous GIRMAIC AI Phone Assistant. I can answer your questions, explain our AI and technology services, or book an appointment for you automatically without human intervention. How may I assist you today?
   </Say>
   <Gather input="speech" action="/api/telephony?action=process" timeout="6" method="POST">
     <Say>Please speak your question or state the date and time you would like to book an appointment.</Say>
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
       });
 
       const systemInstruction = `
-You are the Autonomous GIRMAIC AI Phone Operator for GIRMAIC AI TECHNOLOGY AND TRADING ONE PLC MEMBER, founded by Girma Haile Bunaro in Dire Dawa, Ethiopia.
+You are the Autonomous GIRMAIC AI Phone Operator for GIRMAIC AI TECHNOLOGY AND INNOVATION CENTER, founded by Girma Haile Bunaro in Dire Dawa, Ethiopia.
 
 YOUR KEY RESPONSIBILITIES:
 1. Answer caller questions autonomously in English or Amharic (አማርኛ) without human intervention.
@@ -133,11 +133,11 @@ YOUR KEY RESPONSIBILITIES:
         config: { systemInstruction },
       });
 
-      aiReplyText = response.text || 'Thank you for calling GIRMAIC AI Technology and Trading. How else may I assist you today?';
+      aiReplyText = response.text || 'Thank you for calling GIRMAIC AI Technology and Innovation Center. How else may I assist you today?';
     } else {
       aiReplyText = language === 'am'
-        ? 'ወደ GIRMAIC AI Technology በስልክ ስለደወሉ እናመሰግናለን። የቀጠሮ ጥያቄዎ በራስ-ሰር ተመዝግቧል።'
-        : 'Thank you for calling GIRMAIC AI Technology and Trading. Your appointment request has been recorded automatically.';
+        ? 'ወደ GIRMAIC AI Technology and Innovation Center በስልክ ስለደወሉ እናመሰግናለን። የቀጠሮ ጥያቄዎ በራስ-ሰር ተመዝግቧል።'
+        : 'Thank you for calling GIRMAIC AI Technology and Innovation Center. Your appointment request has been recorded automatically.';
     }
 
     // Check if appointment intent is in speech

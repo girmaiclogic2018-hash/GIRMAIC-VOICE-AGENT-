@@ -5,8 +5,8 @@ export const INITIAL_KNOWLEDGE: CompanyKnowledgeItem[] = [
     id: 'org-info',
     category: 'General',
     title: 'Organization Identity & Legal Status',
-    contentEN: 'GIRMAIC AI TECHNOLOGY AND TRADING ONE PLC MEMBER is an AI technology and trading initiative founded in Dire Dawa, Ethiopia. Note: Legal registration details are founder-supplied.',
-    contentAM: 'GIRMAIC AI TECHNOLOGY AND TRADING ONE PLC MEMBER በድሬዳዋ ኢትዮጵያ የተመሰረተ የሰው ሰራሽ አስተውሎት ቴክኖሎጂ እና ንግድ ድርጅት ነው።'
+    contentEN: 'GIRMAIC AI TECHNOLOGY AND INNOVATION CENTER is an AI technology and innovation hub founded in Dire Dawa, Ethiopia by Girma Haile Bunaro.',
+    contentAM: 'ጂርማይክ አይ አይ ቴክኖሎጂ ኤንድ ኢኖቬሽን ሴንተር በድሬዳዋ ኢትዮጵያ በኣቶ ግርማ ሃይሌ ቡናሮ የተመሰረተ የሰው ሰራሽ አስተውሎት ቴክኖሎጂ እና ፈጠራ ማዕከል ነው።'
   },
   {
     id: 'founder-info',

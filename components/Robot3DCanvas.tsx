@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+import { RefreshCw, Brain, Sparkles } from 'lucide-react';
 import * as THREE from 'three';
 import { RobotState } from '@/lib/types';
 
@@ -19,6 +21,8 @@ export const Robot3DCanvas: React.FC<Robot3DCanvasProps> = ({
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [webglSupported, setWebglSupported] = useState<boolean>(true);
+
+  const [viewMode, setViewMode] = useState<'photo' | '3d'>('photo');
 
   // References for animation
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -461,13 +465,105 @@ export const Robot3DCanvas: React.FC<Robot3DCanvasProps> = ({
     );
   }
 
-  return (
-    <div className="relative w-full h-[360px] sm:h-[420px] rounded-2xl glass-panel overflow-hidden flex items-center justify-center">
-      {/* Container where Three.js canvas mounts */}
-      <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+  const activeGlowColor =
+    state === 'listening'
+      ? 'rgba(6, 182, 212,'
+      : state === 'thinking'
+      ? 'rgba(245, 158, 11,'
+      : state === 'speaking'
+      ? 'rgba(59, 130, 246,'
+      : 'rgba(6, 182, 212,';
 
-      {/* Subtle State Badge Overlay */}
-      <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-700/80 backdrop-blur-md">
+  const glowIntensity = Math.min(1.0, Math.max(0.15, audioLevel * 1.5));
+  const glowBlurRadius = Math.round(15 + audioLevel * 65);
+  const glowSpreadRadius = Math.round(2 + audioLevel * 25);
+
+  return (
+    <div className="relative w-full transition-all duration-100">
+      {/* Background Ambient Audio-Reactive Radial Aura Glow */}
+      <div
+        className="absolute inset-0 rounded-2xl transition-all duration-100 pointer-events-none blur-3xl -z-10"
+        style={{
+          background: `radial-gradient(circle, ${activeGlowColor}${glowIntensity * 0.7}) 0%, transparent 70%)`,
+          transform: `scale(${1 + audioLevel * 0.06})`,
+        }}
+      />
+
+      <div
+        className="relative w-full h-[360px] sm:h-[420px] rounded-2xl glass-panel overflow-hidden flex items-center justify-center bg-slate-950 border border-slate-800 transition-all duration-100"
+        style={{
+          boxShadow: `0 0 ${glowBlurRadius}px ${glowSpreadRadius}px ${activeGlowColor}${glowIntensity * 0.5})`,
+          transform: `scale(${1 + audioLevel * 0.015})`,
+        }}
+      >
+        {viewMode === 'photo' || !webglSupported ? (
+          /* Official GIRMAIC Female Humanoid Robot Visual Identity Photo Mode */
+          <div className="relative w-full h-full flex items-center justify-center overflow-hidden group">
+            <Image
+              src="/assets/aistudio/IMG_20261110_020235_716_a7b35e2f.jpg"
+              alt="GIRMAIC AI Official Humanoid Agent"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              referrerPolicy="no-referrer"
+              className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+            />
+
+            {/* Futuristic Gradient & Cyber Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/60 pointer-events-none" />
+
+            {/* Interactive Audio-Reactive Dynamic Pulse Ring Overlay */}
+            <div
+              className="absolute inset-0 rounded-2xl pointer-events-none transition-all duration-75 border-2"
+              style={{
+                borderColor: `${activeGlowColor}${Math.max(0.3, glowIntensity)})`,
+                boxShadow: `inset 0 0 ${Math.round(20 + audioLevel * 60)}px ${activeGlowColor}${glowIntensity * 0.8})`,
+              }}
+            />
+
+            {/* Interactive State Glow Overlay */}
+            {state === 'listening' && (
+              <div className="absolute inset-0 border-4 border-cyan-400/60 rounded-2xl animate-pulse pointer-events-none shadow-[inset_0_0_50px_rgba(6,182,212,0.5)]" />
+            )}
+            {state === 'thinking' && (
+              <div className="absolute inset-0 border-4 border-amber-400/60 rounded-2xl animate-pulse pointer-events-none shadow-[inset_0_0_50px_rgba(245,158,11,0.5)]" />
+            )}
+            {state === 'speaking' && (
+              <div className="absolute inset-0 border-4 border-blue-500/60 rounded-2xl animate-pulse pointer-events-none shadow-[inset_0_0_60px_rgba(59,130,246,0.6)]" />
+            )}
+
+            {/* Equalizer Audio Meter Overlay when Speaking / Listening */}
+            {(state === 'speaking' || state === 'listening') && (
+              <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-1 px-4 py-1.5 rounded-full bg-slate-950/80 border border-cyan-400/40 backdrop-blur-md">
+                {[0.4, 0.8, 1.0, 0.6, 0.9, 0.5, 0.7].map((factor, i) => (
+                  <div
+                    key={i}
+                    className="w-1.5 bg-cyan-400 rounded-full transition-all duration-75"
+                    style={{
+                      height: `${Math.max(6, (audioLevel || 0.5) * 32 * factor)}px`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Three.js 3D WebGL Canvas Mode */
+          <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+        )}
+
+      {/* Floating 'Thinking...' HUD Indicator Overlay */}
+      {state === 'thinking' && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-4 py-2 rounded-full bg-slate-950/95 border border-amber-400/80 shadow-[0_0_35px_rgba(245,158,11,0.6)] backdrop-blur-md animate-bounce">
+          <RefreshCw className="w-4 h-4 text-amber-400 animate-spin" />
+          <span className="text-xs font-mono font-extrabold tracking-widest text-amber-300 uppercase">
+            Thinking...
+          </span>
+          <Brain className="w-4 h-4 text-amber-400 animate-pulse" />
+        </div>
+      )}
+
+      {/* Top Left: State Status Badge Overlay */}
+      <div className="absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 backdrop-blur-md shadow-lg">
         <span
           className={`w-2.5 h-2.5 rounded-full ${
             state === 'listening'
@@ -494,10 +590,35 @@ export const Robot3DCanvas: React.FC<Robot3DCanvasProps> = ({
         </span>
       </div>
 
-      {/* Brand Watermark Badge */}
-      <div className="absolute bottom-4 right-4 px-2.5 py-1 rounded-md bg-slate-950/60 border border-amber-500/30 text-[10px] font-mono tracking-widest text-amber-400/90">
-        GIRMAIC AI 3D ENGINE
+      {/* Top Right: Visual Identity Toggle (Official Photo vs 3D Interactive) */}
+      <div className="absolute top-4 right-4 z-10 flex items-center bg-slate-900/90 border border-slate-700/80 rounded-xl p-1 backdrop-blur-md shadow-lg">
+        <button
+          onClick={() => setViewMode('photo')}
+          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+            viewMode === 'photo'
+              ? 'bg-amber-500 text-slate-950 shadow'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          Official Photo
+        </button>
+        <button
+          onClick={() => setViewMode('3d')}
+          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+            viewMode === '3d'
+              ? 'bg-cyan-500 text-slate-950 shadow'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          3D Model
+        </button>
       </div>
+
+      {/* Bottom Right: Official Identity Watermark */}
+      <div className="absolute bottom-4 right-4 z-10 px-2.5 py-1 rounded-md bg-slate-950/80 border border-amber-500/30 text-[10px] font-mono tracking-widest text-amber-300">
+        GIRMAIC AI · HUMAN VISION
+      </div>
+    </div>
     </div>
   );
 };
